@@ -24,9 +24,10 @@ const io = new Server(httpServer, {
 
 app.use("/user", userRoutes);
 
-mongoose.connect(
-  `mongodb+srv://yashrewa00:21Savage@cluster0.fngj58u.mongodb.net/TEST-TASK-?retryWrites=true&w=majority`
-);
+const mongoDbUrl =  process.env.MONGODB_URL
+
+
+mongoose.connect(`${mongoDbUrl}`);
 
 
 let users: { userId: string; socketId: string }[] = [];
