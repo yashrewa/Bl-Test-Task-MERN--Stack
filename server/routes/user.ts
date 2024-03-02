@@ -76,7 +76,7 @@ router.post("/login", async (req: Request, res: Response) => {
                     role: "user"
                 },
                 secretKey,
-                { expiresIn: "20s" }
+                { expiresIn: "1h" }
             );
             await Users.updateOne(
                 { email: email },
