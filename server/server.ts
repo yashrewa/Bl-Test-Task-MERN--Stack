@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import http from "http";
+import {createServer} from "http";
 import { Server, Socket } from "socket.io";
 import userRoutes from "./routes/user";
 import mongoose, { disconnect } from "mongoose";
@@ -14,13 +14,12 @@ const app = express();
 app.use(express.json());
 
 app.use(cors());
-const expressServer = http.createServer(app);
-const socketServer = http.createServer();
+const httpServer = createServer(app);
 
-const io = new Server(socketServer, {
-  cors: {
-    origin: "*"
-  }
+const io = new Server(httpServer, {
+ cors: {
+  origin: "http://localhost:5173"
+ }
 });
 
 app.use("/user", userRoutes);
@@ -47,22 +46,39 @@ io.on("connection", (socket: CustomSocket) => {
     const receiver = users.find(user => user.userId === receiverId);
     const sender: { userId: string; socketId: string } = users.find(user => user.userId === senderId) as { userId: string; socketId: string }
     const user = await Users.findById(senderId)
-    console.log('USER JO ABHI FETCH KIYA HAI',user)
 
-    if (receiver) {
-      io.to(receiver.socketId).to(sender.socketId).emit('getMessage', {
-        conversationId,
-        senderId,
-        message,
-        receiverId,
-        user: { id: user?._id, fullName: user?.name, email: user?.email }
-      })
+    console.log('RECEIVER', receiver)
+
+    if (sender) {
+      if (receiver) {
+        console.log('USER JO ABHI FETCH KIYA HAI AUR RECEIVER BHI PRESENT HAI', user)
+        io.to(receiver.socketId).to(sender.socketId).emit('getMessage', {
+          conversationId,
+          senderId,
+          message,
+          receiverId,
+          user: { id: user?._id, fullName: user?.name, email: user?.email }
+        })
+        return 
+      }
+      if(!receiver) {
+        console.log('USER OFFLINE HAI FIR BHI MESSAGE JAA RHA HAI BLOCK');
+        
+        io.to(sender.socketId).emit('getMessage', {
+          conversationId,
+          senderId,
+          message,
+          receiverId,
+          user: { id: user?._id, fullName: user?.name, email: user?.email }
+        })
+      }
     }
+
   })
 
-  socket.on('updatedConversation', ({updatedConversation, ReceiverId})=>{
-    const receiver:any = users.find(user => user.userId === ReceiverId);
-    io.to(receiver.socketId).emit('updateTheConversation',{
+  socket.on('updatedConversation', ({ updatedConversation, ReceiverId }) => {
+    const receiver: any = users.find(user => user.userId === ReceiverId);
+    io.to(receiver.socketId).emit('updateTheConversation', {
       updatedConversation
     })
   })
@@ -75,14 +91,10 @@ io.on("connection", (socket: CustomSocket) => {
   // io.emit('getUsers', socket.userId)
 });
 
-const expressPort = process.env.EXPRESS_PORT || 3000;
-const socketPort = process.env.SOCKET_PORT || 8000;
+const port = process.env.PORT || 3000;
 
-expressServer.listen(expressPort, () => {
-  console.log(`Server is running on port ${expressPort}`);
-});
-socketServer.listen(socketPort, () => {
-  console.log(`Server is running on port ${socketPort}`);
+httpServer.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 // const io = new Server(server, {

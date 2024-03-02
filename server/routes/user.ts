@@ -27,10 +27,8 @@ interface User {
 }
 
 router.post("/signup", async (req: Request, res: Response) => {
-    // const { email } = req.body;
     const { name, email, phone_number, password } = req.body;
     const parsedInput = signupValidate.safeParse(req.body);
-    // console.log(req.body);
     if (!parsedInput.success) {
         return res.json({ message: parsedInput.error });
     }
@@ -166,7 +164,7 @@ router.post('/api/message', async (req: Request, res: Response) => {
 
         if (!senderId || !message) return res.status(400).send('message cannot be empty');
         if (conversationId === 'new' && receiverId) {
-            console.log('Message in New Conversation has been received')
+            // console.log('Message in New Conversation has been received')
             const newConversation = new Conversations({ members: [senderId, receiverId] })
             await newConversation.save();
             const newMessage = new Messages({ conversationId: newConversation._id, senderId: senderId, message });

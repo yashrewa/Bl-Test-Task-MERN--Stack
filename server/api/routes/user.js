@@ -31,10 +31,8 @@ const loginValidate = zod_1.z.object({
     //   token: z.string().min(1)
 });
 router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // const { email } = req.body;
     const { name, email, phone_number, password } = req.body;
     const parsedInput = signupValidate.safeParse(req.body);
-    // console.log(req.body);
     if (!parsedInput.success) {
         return res.json({ message: parsedInput.error });
     }
@@ -149,7 +147,7 @@ router.post('/api/message', (req, res) => __awaiter(void 0, void 0, void 0, func
         if (!senderId || !message)
             return res.status(400).send('message cannot be empty');
         if (conversationId === 'new' && receiverId) {
-            console.log('Message in New Conversation has been received');
+            // console.log('Message in New Conversation has been received')
             const newConversation = new db_1.Conversations({ members: [senderId, receiverId] });
             yield newConversation.save();
             const newMessage = new db_1.Messages({ conversationId: newConversation._id, senderId: senderId, message });

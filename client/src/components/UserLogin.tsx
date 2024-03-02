@@ -1,29 +1,25 @@
 import {  useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
-import { backendLink } from "./Utils/backendLink"
+import { expressBackend } from "./Utils/backendLink"
 
 const UserRegister = () => {
   const [email, setEmail] = useState<string>('test@email.com')
   const [password, setPassword] = useState<string>('password123');
 
-  // const userRegister = () => {
-  //   socket.emit('userRegister', { userName, userId: socket.id })
-  //   setUserName('')
-  //   return navigate('/chatpage')
-  // }
-
   const navigate = useNavigate();
 
   const logIn = async () => {
     try {
-      const response = await axios.post(`${backendLink}/login`, {}, {
+      const response = await axios.post(`${expressBackend}/login`, {}, {
         headers: {
           email: email,
           password: password
         }
       });
-      if (response.data.message.issues) {
+      if (response?.data?.message?.issues) {
+        console.log(response);
+        
         response.data.message.issues.forEach((issue:{path:string; code:string}) => {
           return window.alert(`${issue.path[0]
             } ${issue.code
@@ -34,9 +30,9 @@ const UserRegister = () => {
         window.alert("Invalid username or password")
       }
       if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("userName", response.data.userName)
-        localStorage.setItem("userId", response.data.userId)
+        sessionStorage.setItem("token", response.data.token);
+        sessionStorage.setItem("userName", response.data.userName)
+        sessionStorage.setItem("userId", response.data.userId)
         console.log(response.data)
         navigate('/chatpage')
       }

@@ -27,30 +27,42 @@ interface User {
 }
 
 
-interface Data {
+// interface Data {
+//     conversationId: string;
+//     user?: [User] | {
+//         email: string;
+//         fullName: string;
+//     };
+//     email: string;
+// }
+interface Conversations {
     conversationId: string;
-    user?: [User] | {
+    user: {
         email: string;
         fullName: string;
+        userId: string;
     };
-    email: string;
-}
-interface Conversations {
-    data: [Data];
-    user: User;
 }
 
 interface Users {
     userId: string;
     data: [User],
-    
+
 }
+
+interface CurrentReceiver {
+    email: string;
+    fullName: string;
+    userId: string;
+}
+
 
 
 function ChatPage() {
     const navigate = useNavigate()
-    const [conversations, setConversations] = useState<Conversations| null>(null);
-    const [senderId] = useState(localStorage.getItem('userId'))
+    const [currentReceiver, setCurrentReceiver] = useState<CurrentReceiver | null>(null)
+    const [conversations, setConversations] = useState<Conversations []| null>(null);
+    const [senderId] = useState(sessionStorage.getItem('userId'))
     const [messages, setMessages] = useState<MessagesState>({ data: [], conversationId: null, receiverId: null });
     const [message, setMessage] = useState('')
     const [users, setUsers] = useState<Users | undefined>(undefined)
@@ -61,51 +73,48 @@ function ChatPage() {
 
 
     useEffect(() => {
+        console.log('THIS CODE OF BLOCK IS RUNNING RN')
         const newSocket: CustomSocket = io.connect(socketBakcend) as CustomSocket
         setSocket(newSocket)
+
     }, [])
 
     useEffect(() => {
-        socket?.emit('addUser', localStorage.getItem('userId'))
-        // socket?.on('getUser', user => {
-        //     console.log('ACTIVE USERS', user);
-        // })
-
-        // console.log("from useEFFECT of socket", messages);
+        socket?.emit('addUser', sessionStorage.getItem('userId'))
+        socket?.on('getUser', user => {
+            console.log('ACTIVE USERS', user);
+        })
         socket?.on('getMessage', newData => {
-            // console.log('DATA FROM SOCKET =>', newData)
+            console.log('SOCKET RESPONSE FOR LIVE MESSAGE DISPLAY', newData);
             setMessages({ ...messages, data: [...messages.data, { user: newData.user, message: newData.message }] })
         })
 
-        // socket?.on('updatedConversation',data=>{
-        //     setConversations([...conversations, ...data])
-        // })
-        console.log(messages);
+
+    }, [socket, message, messages])
+
+    // console.log('USERS', users);
 
 
-    }, [socket, messages, message])
-
-    console.log('USERS', users);
     useEffect(() => {
         messageRef?.current?.scrollIntoView({ behavior: 'smooth' })
-
-        // console.log('conversations',conversations)
-        // console.log("MESSAGES STATE AFTER GETTING MSG RESPONSE FROM SOCKET", messages)
     }, [messages?.data])
 
 
     useEffect(() => {
-        fetchConversations()
+
         fetchUsers()
     }, [])
+    useEffect(() => {
+        fetchConversations()
+    }, [message])
 
 
     const fetchUsers = async () => {
         try {
-            if (localStorage.getItem('token') !== null) {
-                const response: any = await axios.get(`${expressBackend}/api/users/${localStorage.getItem('userId')}`, {
+            if (sessionStorage.getItem('token') !== null) {
+                const response: any = await axios.get(`${expressBackend}/api/users/${sessionStorage.getItem('userId')}`, {
                     headers: {
-                        authorization: 'Bearer ' + localStorage.getItem('token')
+                        authorization: 'Bearer ' + sessionStorage.getItem('token')
                     }
                 })
                 setUsers(response)
@@ -121,67 +130,53 @@ function ChatPage() {
     }
 
     const fetchConversations = async () => {
-        const response: any = await axios.get(`${expressBackend}/api/conversations/${localStorage.getItem('userId')}`, {})
-        setConversations(response)
+        const response: any = await axios.get(`${expressBackend}/api/conversations/${sessionStorage.getItem('userId')}`, {})
+
+        console.log("FETCHED CONVERSATIONS ARRAY", response);
+
+        setConversations(response?.data)
     }
 
     const fetchMessages = async (convoId: string, userData: any) => {
-        // console.log("DATA sent from Fetch Messages", userData);
-        // console.log("ALL USERS ARRAY", users)
 
-
-        const response = await axios.get(`${expressBackend}/api/message/${convoId}?senderId=${localStorage.getItem('userId')}&receiverId=${userData?.userId}`,
+        const response = await axios.get(`${expressBackend}/api/message/${convoId}?senderId=${sessionStorage.getItem('userId')}&receiverId=${userData?.userId}`,
             {
                 headers: {
                     'Content-Type': 'application/json',
                 },
             }
         );
-        // console.log("RESPONSE FROM FETCHED MESSAGES=>", response)
+        console.log('CONVERSATIONS FETCHED', conversations);
 
         setMessages({ data: response?.data?.messageUserData, conversationId: response?.data?.conversationId, receiverId: userData?.userId })
-        // console.log("RESPONSE AFTER ELSE", response)
-
-
+        // console.log("FETCHING OF OLDER MESSAGES", response)
         // console.log("FINAL MESSAGES ARRAY AFTER IF ELSE",messages)
     }
 
 
-    const receiver = messages?.data?.find(message => message.user.id !== localStorage.getItem('userId'))
-
 
 
     const sendMessage = async () => {
-
+        console.log("Message sent to=>>>>", currentReceiver?.fullName)
         socket?.emit('sendMessage', {
             conversationId: messages?.conversationId,
-            senderId: localStorage.getItem('userId'),
+            senderId: senderId,
             message: message,
-            receiverId: messages?.receiverId
+            receiverId: currentReceiver?.userId
         })
-
-        // socket?.emit('addConversation',{
-
-        // })
 
         const response = await axios.post(`${expressBackend}/api/message`, {
             conversationId: messages?.conversationId,
-            senderId: localStorage.getItem('userId'),
+            senderId: sessionStorage.getItem('userId'),
             message: message,
-            receiverId: messages?.receiverId,
+            receiverId: currentReceiver?.userId,
         })
 
-        const updatedConversation: any = await axios.get(`${expressBackend}/api/conversations/${localStorage.getItem('userId')}`, {})
+        const updatedConversation: any = await axios.get(`${expressBackend}/api/conversations/${senderId}`, {})
 
-        console.log('conversations updated after sending message', updatedConversation);
+        // console.log('conversations updated after sending message', updatedConversation);
 
-        setConversations(updatedConversation)
-        // const Receiver = updatedConversation?.data?.filter(member => member?.user?.userId === messages?.receiverId)
-        // socket?.emit('updatedConversation', {
-        //     updatedConversation,
-        //     ReceiverId: Receiver
-        // })
-
+        setConversations(updatedConversation?.data)
         setMessage('')
         console.log("RESPONSE AFTER SENDING MESSAGE", response)
     }
@@ -204,7 +199,7 @@ function ChatPage() {
                             <span className="btn btn-ghost text-xl lg:text-4xl"> ← CONVERSATIONS</span>
                         </div>
                         <div className='text-2xl font-bold cursor-pointer' onClick={() => {
-                            localStorage.clear();
+                            sessionStorage.clear();
                             navigate('/')
                         }}>
                             <svg width="32px" height="32px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" className="font-bold">
@@ -217,21 +212,31 @@ function ChatPage() {
                 <div className="drawer-side">
                     <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
                     <ul className="menu text-xl  p-4 w-80 min-h-full justify-start bg-base-200 text-base-content">
-                        <div className='h-32 lg:text-center top-0 left-0 md:block w-72 text-xl lg:text-3xl font-semibold mb-4 bg-base-200'>Current User - <span className='font-extrabold'>{localStorage.getItem('userName')}</span></div>
+                        <div className='h-32 lg:text-center top-0 left-0 md:block w-72 text-xl lg:text-3xl font-semibold mb-4 bg-base-200'>Current User - <span className='font-extrabold'>{sessionStorage.getItem('userName')}</span></div>
                         {/* Sidebar content here */}
                         <div className='text-xl font-semibold'>Messages:</div>
-                        {conversations && conversations?.data?.map(({ conversationId, user }) => {
+                        {conversations && conversations?.map(({ conversationId, user }) => {
                             return (
-                                <li key={conversationId} onClick={() => fetchMessages(conversationId, user)} className='bg-base-content rounded-5xl hover:rounded-xl text-base-100 hover:bg-base-content my-2 '><span className='pt-4  bg-base-content hover:bg-base-content'>{Array.isArray(user) ? user[0]?.fullName : user?.fullName}</span>
+                                <li key={conversationId}
+                                    onClick={() => {
+                                        setCurrentReceiver(user)
+                                        fetchMessages(conversationId, user)
+
+                                    }}
+                                    className='bg-base-content rounded-5xl hover:rounded-xl text-base-100 hover:bg-base-content my-2 '><span className='pt-4  bg-base-content hover:bg-base-content'>{Array.isArray(user) ? user[0]?.fullName : user?.fullName}</span>
                                     <div className='text-xs bg-base-content hover:bg-base-content -mt-2 text-base-100 '> {Array.isArray(user) ? user[0]?.email : user?.email}</div>
                                 </li>
                             )
                         })}
                         <div className='text-xl font-semibold'>All Users:</div>
-
                         {users?.data?.map((user) => {
                             return (
-                                <li key={user.userId} onClick={() => fetchMessages('new', user)} className=' bg-base-300 rounded-xl hover:bg-base-300 my-2 '><span className='pt-4 bg-base-300 hover:bg-base-300'>{user?.user?.fullName}</span>
+                                <li key={user.userId}
+                                    onClick={() => {
+                                        setCurrentReceiver(user.user);
+                                        fetchMessages('new', user)
+                                    }}
+                                    className=' bg-base-300 rounded-xl hover:bg-base-300 my-2 '><span className='pt-4 bg-base-300 hover:bg-base-300'>{user?.user?.fullName}</span>
                                     <div className='text-xs hover:bg-base-300 -mt-2 text-gray-700'> {user?.user?.email}</div>
                                 </li>
                             )
@@ -246,32 +251,33 @@ function ChatPage() {
             {/* {newUserJoined && <NormalAlert message={`${newUserJoined}`} />} */}
             {/* <div className='leading-loose  text-2xl  flex text-black justify-center lg:pl-4 lg:justify-start bg-gray-100 w-screen'></div> */}
             <div className='justify-center h-screen  mx-auto max-w-6xl w-11/12 lg:w-8/12 overflow-y-scroll lg:px-4 '>
-                {receiver?.user?.fullName && <div className='text-center text-xl lg:text-3xl bg-base-content text-base-100 py-4 my-2 mx-0 lg:py-6 lg:w-4/12 rounded-lg lg:mx-auto '>{receiver?.user?.fullName}</div>}
-                {messages?.data?.length > 0 ? messages?.data?.map(message => {
-                    return (
-                        <>
-                            <div ref={messageRef} key={message?.user?.id}>
-                                <div className={`chat chat-start ${message?.user?.id === senderId && 'chat-end'}`}>
-                                    <div className="chat-image avatar">
-                                        <div className="w-10 rounded-full">
-                                            <img alt="Tailwind CSS chat bubble component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                {currentReceiver?.fullName && <div className='text-center text-xl lg:text-3xl bg-base-content text-base-100 py-4 my-2 mx-0 lg:py-6 lg:w-4/12 rounded-lg lg:mx-auto '>{currentReceiver?.fullName}</div>}
+                {!currentReceiver ? <div className='mt-4 h-screen font-semibold text-center text-4xl'>SELECT A CONVERSATION FROM SIDE PANEL</div>
+                    :
+                    messages?.data?.length > 0 ? messages?.data?.map(message => {
+                        return (
+                            <>
+                                <div ref={messageRef} key={message?.user?.id}>
+                                    <div className={`chat chat-start ${message?.user?.id === senderId && 'chat-end'}`}>
+                                        <div className="chat-image avatar">
+                                            <div className="w-10 rounded-full">
+                                                <img alt="Tailwind CSS chat bubble component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                                            </div>
+                                        </div>
+                                        <div className="chat-header">
+                                            {message.user.fullName.split(' ')[0]}
+                                        </div>
+                                        <div className="chat-bubble">{message.message}</div>
+                                        <div className="chat-footer opacity-50">
+                                            Delivered
                                         </div>
                                     </div>
-                                    <div className="chat-header">
-                                        {message.user.fullName.split(' ')[0]}
-                                    </div>
-                                    <div className="chat-bubble">{message.message}</div>
-                                    <div className="chat-footer opacity-50">
-                                        Delivered
-                                    </div>
                                 </div>
-                            </div>
-                        </>
-                    )
+                            </>
+                        )
 
-                }) : <div className='mt-4 h-screen font-semibold text-center text-4xl'>No Conversation Selected or No New Message<div className='pt-4 text-red-500'>BUG:</div><div className='text-2xl text-red-500'> After sending message to the new user go to their conversation from side panel</div></div>}
-
-
+                    }) : <div className='mt-4 h-screen font-semibold text-center text-4xl'>No Messages</div>
+                }
             </div>
             {messages?.receiverId && (
                 <div className='sticky bg-base-200 bottom-0 left-0 right-0'>

@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { backendLink } from "./Utils/backendLink";
+import { expressBackend } from "./Utils/backendLink";
 
 function UserSingup() {
     const navigate = useNavigate()
@@ -13,7 +13,7 @@ function UserSingup() {
 
     const Signup = async () => {
         try {
-            const response: AxiosResponse = await axios.post(`${backendLink}/signup`, {
+            const response: AxiosResponse = await axios.post(`${expressBackend}/signup`, {
                 name: name,
                 email: email,
                 phone_number: phone_number,
@@ -30,7 +30,7 @@ function UserSingup() {
             }
             if (response.data.token) {
                 navigate('/')
-                localStorage.setItem("token", response.data.token);
+                sessionStorage.setItem("token", response.data.token);
             }
         } catch (error) {
             console.log(error);

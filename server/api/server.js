@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const http_1 = __importDefault(require("http"));
+const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const user_1 = __importDefault(require("./routes/user"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -22,11 +22,10 @@ const db_1 = require("./db/db");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
-const expressServer = http_1.default.createServer(app);
-const socketServer = http_1.default.createServer();
-const io = new socket_io_1.Server(socketServer, {
+const httpServer = (0, http_1.createServer)(app);
+const io = new socket_io_1.Server(httpServer, {
     cors: {
-        origin: "*"
+        origin: "http://localhost:5173"
     }
 });
 app.use("/user", user_1.default);
@@ -46,15 +45,29 @@ io.on("connection", (socket) => {
         const receiver = users.find(user => user.userId === receiverId);
         const sender = users.find(user => user.userId === senderId);
         const user = yield db_1.Users.findById(senderId);
-        console.log('USER JO ABHI FETCH KIYA HAI', user);
-        if (receiver) {
-            io.to(receiver.socketId).to(sender.socketId).emit('getMessage', {
-                conversationId,
-                senderId,
-                message,
-                receiverId,
-                user: { id: user === null || user === void 0 ? void 0 : user._id, fullName: user === null || user === void 0 ? void 0 : user.name, email: user === null || user === void 0 ? void 0 : user.email }
-            });
+        console.log('RECEIVER', receiver);
+        if (sender) {
+            if (receiver) {
+                console.log('USER JO ABHI FETCH KIYA HAI AUR RECEIVER BHI PRESENT HAI', user);
+                io.to(receiver.socketId).to(sender.socketId).emit('getMessage', {
+                    conversationId,
+                    senderId,
+                    message,
+                    receiverId,
+                    user: { id: user === null || user === void 0 ? void 0 : user._id, fullName: user === null || user === void 0 ? void 0 : user.name, email: user === null || user === void 0 ? void 0 : user.email }
+                });
+                return;
+            }
+            if (!receiver) {
+                console.log('USER OFFLINE HAI FIR BHI MESSAGE JAA RHA HAI BLOCK');
+                io.to(sender.socketId).emit('getMessage', {
+                    conversationId,
+                    senderId,
+                    message,
+                    receiverId,
+                    user: { id: user === null || user === void 0 ? void 0 : user._id, fullName: user === null || user === void 0 ? void 0 : user.name, email: user === null || user === void 0 ? void 0 : user.email }
+                });
+            }
         }
     }));
     socket.on('updatedConversation', ({ updatedConversation, ReceiverId }) => {
@@ -69,13 +82,9 @@ io.on("connection", (socket) => {
     });
     // io.emit('getUsers', socket.userId)
 });
-const expressPort = process.env.EXPRESS_PORT || 3000;
-const socketPort = process.env.SOCKET_PORT || 8000;
-expressServer.listen(expressPort, () => {
-    console.log(`Server is running on port ${expressPort}`);
-});
-socketServer.listen(socketPort, () => {
-    console.log(`Server is running on port ${socketPort}`);
+const port = process.env.PORT || 3000;
+httpServer.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
 // const io = new Server(server, {
 //   cors: {
