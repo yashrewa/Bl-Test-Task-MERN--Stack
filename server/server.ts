@@ -24,7 +24,7 @@ const io = new Server(httpServer, {
 
 app.use("/user", userRoutes);
 
-const mongoDbUrl =  process.env.MONGODB_URL
+const mongoDbUrl =  process.env.MONGODB_URL 
 
 
 mongoose.connect(`${mongoDbUrl}`);

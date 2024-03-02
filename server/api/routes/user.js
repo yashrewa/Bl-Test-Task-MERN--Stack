@@ -69,7 +69,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             const newToken = jsonwebtoken_1.default.sign({
                 email,
                 role: "user"
-            }, Auth_1.secretKey, { expiresIn: "20s" });
+            }, Auth_1.secretKey, { expiresIn: "1h" });
             yield db_1.Users.updateOne({ email: email }, {
                 $set: { token: newToken }
             });

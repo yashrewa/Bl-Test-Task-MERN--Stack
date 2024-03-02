@@ -25,11 +25,12 @@ app.use((0, cors_1.default)());
 const httpServer = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(httpServer, {
     cors: {
-        origin: "http://localhost:5173"
+        origin: "*"
     }
 });
 app.use("/user", user_1.default);
-mongoose_1.default.connect(`mongodb+srv://yashrewa00:21Savage@cluster0.fngj58u.mongodb.net/TEST-TASK-?retryWrites=true&w=majority`);
+const mongoDbUrl = process.env.MONGODB_URL || 'mongodb+srv://yashrewa00:21Savage@cluster0.fngj58u.mongodb.net/TEST-TASK-?retryWrites=true&w=majority';
+mongoose_1.default.connect(`${mongoDbUrl}`);
 let users = [];
 io.on("connection", (socket) => {
     console.log("SOCKET CONNECTION ESTABLISHED", socket.id);

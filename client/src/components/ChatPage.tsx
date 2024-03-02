@@ -61,7 +61,7 @@ interface CurrentReceiver {
 function ChatPage() {
     const navigate = useNavigate()
     const [currentReceiver, setCurrentReceiver] = useState<CurrentReceiver | null>(null)
-    const [conversations, setConversations] = useState<Conversations []| null>(null);
+    const [conversations, setConversations] = useState<Conversations[] | null>(null);
     const [senderId] = useState(sessionStorage.getItem('userId'))
     const [messages, setMessages] = useState<MessagesState>({ data: [], conversationId: null, receiverId: null });
     const [message, setMessage] = useState('')
@@ -196,7 +196,7 @@ function ChatPage() {
                             </label>
                         </div>
                         <div className="flex-auto  justify-normal">
-                            <span className="btn btn-ghost text-xl lg:text-4xl"> ← CONVERSATIONS</span>
+                            <span className="btn btn-ghost px-0 text-2xl lg:text-4xl"> <span className='text-4xl mb-2'>←</span> CONVERSATIONS</span>
                         </div>
                         <div className='text-2xl font-bold cursor-pointer' onClick={() => {
                             sessionStorage.clear();
@@ -211,40 +211,62 @@ function ChatPage() {
                 </div>
                 <div className="drawer-side">
                     <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
-                    <ul className="menu text-xl  p-4 w-80 min-h-full justify-start bg-base-200 text-base-content">
-                        <div className='h-32 lg:text-center top-0 left-0 md:block w-72 text-xl lg:text-3xl font-semibold mb-4 bg-base-200'>Current User - <span className='font-extrabold'>{sessionStorage.getItem('userName')}</span></div>
+                    <ul className="menu text-xl p-2 pt-4 w-80 min-h-full justify-start bg-base-200 text-base-content">
+                        <div className='h-12 lg:text-cente px-4 top-0 left-0 md:block w-72 text-xl lg:text-3xl font-normal bg-base-200'>Logged In as: <span className='font-medium text-balance'>{sessionStorage.getItem('userName')}</span></div>
                         {/* Sidebar content here */}
-                        <div className='text-xl font-semibold'>Messages:</div>
-                        {conversations && conversations?.map(({ conversationId, user }) => {
-                            return (
-                                <li key={conversationId}
-                                    onClick={() => {
-                                        setCurrentReceiver(user)
-                                        fetchMessages(conversationId, user)
+                        <div className="collapse collapse-arrow bg-base-200">
+                            <input type="radio" name="my-accordion-2" defaultChecked />
+                            <div className="collapse-title text-2xl font-normal">
+                                Conversations
+                            </div>
+                            <div className="collapse-content">
+                                {conversations && conversations?.map(({ conversationId, user }) => {
+                                    return (
+                                        <li key={conversationId}
+                                            onClick={() => {
+                                                setCurrentReceiver(user)
+                                                fetchMessages(conversationId, user)
 
-                                    }}
-                                    className='bg-base-content rounded-5xl hover:rounded-xl text-base-100 hover:bg-base-content my-2 '><span className='pt-4  bg-base-content hover:bg-base-content'>{Array.isArray(user) ? user[0]?.fullName : user?.fullName}</span>
-                                    <div className='text-xs bg-base-content hover:bg-base-content -mt-2 text-base-100 '> {Array.isArray(user) ? user[0]?.email : user?.email}</div>
-                                </li>
-                            )
-                        })}
-                        <div className='text-xl font-semibold'>All Users:</div>
-                        {users?.data?.map((user) => {
-                            return (
-                                <li key={user.userId}
-                                    onClick={() => {
-                                        setCurrentReceiver(user.user);
-                                        fetchMessages('new', user)
-                                    }}
-                                    className=' bg-base-300 rounded-xl hover:bg-base-300 my-2 '><span className='pt-4 bg-base-300 hover:bg-base-300'>{user?.user?.fullName}</span>
-                                    <div className='text-xs hover:bg-base-300 -mt-2 text-gray-700'> {user?.user?.email}</div>
-                                </li>
-                            )
-                        })}
+                                            }}
+                                            className='bg-base-content rounded-5xl hover:rounded-xl text-base-100 hover:bg-base-content my-2 '><span className='pt-4  bg-base-content hover:bg-base-content'>{Array.isArray(user) ? user[0]?.fullName : user?.fullName}</span>
+                                            <div className='text-xs bg-base-content hover:bg-base-content -mt-2 text-base-100 '> {Array.isArray(user) ? user[0]?.email : user?.email}</div>
+                                        </li>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                        <div className="collapse collapse-arrow bg-base-200">
+                            <input type="radio" name="my-accordion-2" />
+                            <div className="collapse-title text-2xl ">
+                                All Users
+                            </div>
+                            <div className="collapse-content">
+                                {users?.data?.map((user) => {
+                                    return (
+                                        <li key={user.userId}
+                                            onClick={() => {
+                                                setCurrentReceiver(user.user);
+                                                fetchMessages('new', user)
+                                            }}
+                                            className=' bg-base-300 rounded-xl hover:bg-base-300 my-2 '><span className='pt-4 bg-base-300 hover:bg-base-300'>{user?.user?.fullName}</span>
+                                            <div className='text-xs hover:bg-base-300 -mt-2 text-gray-700'> {user?.user?.email}</div>
+                                        </li>
+                                    )
+                                })}
+                            </div>
+                        </div>
+{/* 
+                        <div className='text-xl font-semibold'>Messages:</div>
+
+
+                        <div className='text-xl font-semibold'>All Users:</div> */}
+
 
                     </ul>
                 </div>
             </div>
+
+
             {/* Above is the sidebar */}
 
             {/* <SuccessAlert message={'Welcome to the broadcast channel'} /> */}
