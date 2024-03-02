@@ -212,7 +212,7 @@ function ChatPage() {
                 <div className="drawer-side">
                     <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
                     <ul className="menu text-xl p-2 pt-4 w-80 min-h-full justify-start bg-base-200 text-base-content">
-                        <div className='h-12 lg:text-cente px-4 top-0 left-0 md:block w-72 text-xl lg:text-3xl font-normal bg-base-200'>Logged In as: <span className='font-medium text-balance'>{sessionStorage.getItem('userName')}</span></div>
+                        <div className='h-16 lg:h-24 lg:text-cente px-4 top-0 left-0 md:block w-72 text-xl lg:text-3xl font-normal bg-base-200'>Logged In as: <span className='font-medium text-balance'>{sessionStorage.getItem('userName')}</span></div>
                         {/* Sidebar content here */}
                         <div className="collapse collapse-arrow bg-base-200">
                             <input type="radio" name="my-accordion-2" defaultChecked />
