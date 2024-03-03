@@ -4,6 +4,7 @@ import axios from 'axios'
 import * as io from 'socket.io-client'
 import { useNavigate } from 'react-router-dom';
 import { expressBackend, socketBakcend } from './Utils/backendLink';
+import dropdown from '../assets/arrow-204-24.png'
 
 interface CustomSocket extends io.Socket {
     userId?: string;
@@ -146,7 +147,7 @@ function ChatPage() {
                 },
             }
         );
-        console.log('CONVERSATIONS FETCHED', conversations);
+        console.log('CONVERSATIONS FETCHED');
 
         setMessages({ data: response?.data?.messageUserData, conversationId: response?.data?.conversationId, receiverId: userData?.userId })
         // console.log("FETCHING OF OLDER MESSAGES", response)
@@ -181,11 +182,27 @@ function ChatPage() {
         console.log("RESPONSE AFTER SENDING MESSAGE", response)
     }
 
+    const deleteMessage = async (messageId: string, senderId: string) => {
+        const responseAfterDelete = await axios.delete(`${expressBackend}/api/message-delete/${messageId}`)
+        console.log(responseAfterDelete);
+
+        const response = await axios.get(`${expressBackend}/api/message/${messages?.conversationId}?senderId=${senderId}&receiverId=${currentReceiver?.userId}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        setMessages({ data: response?.data?.messageUserData, conversationId: response?.data?.conversationId, receiverId: currentReceiver?.userId })
+
+    }
+
 
 
 
     return (
         <div className='bg-base-200 h-auto justify-items-center'>
+
             <div className="drawer pb-2 sticky top-0 z-20">
                 <input id="my-drawer" type="checkbox" className="drawer-toggle " />
                 <div className="drawer-content">
@@ -255,13 +272,6 @@ function ChatPage() {
                                 })}
                             </div>
                         </div>
-{/* 
-                        <div className='text-xl font-semibold'>Messages:</div>
-
-
-                        <div className='text-xl font-semibold'>All Users:</div> */}
-
-
                     </ul>
                 </div>
             </div>
@@ -289,10 +299,19 @@ function ChatPage() {
                                         <div className="chat-header">
                                             {message.user.fullName.split(' ')[0]}
                                         </div>
-                                        <div className="chat-bubble">{message.message}</div>
+                                        <div className={`chat-bubble  ${message?.user?.id === senderId ? 'pr-6' : 'pl-6'}`}>{message.message}<div className={`absolute dropdown  ${message?.user?.id === senderId ? 'right-1.5 dropdown-left' : 'left-1.5 dropdown-right'}  top-1.5 `}><img tabIndex={0} role="button" className='size-3 cursor-pointer' src={dropdown} alt="" />
+                                            <ul tabIndex={0} className="dropdown-content z-[1] menu  mx-0 my-8 shadow bg-gray-900  rounded-box w-52">
+                                                <li className='text-red-500' onClick={() => {
+                                                    console.log(message);
+                                                    deleteMessage(message?.messageId, message.user.id)
+                                                }}><a>Delete Message</a></li>
+                                            </ul>
+                                        </div>
+                                        </div>
                                         <div className="chat-footer opacity-50">
                                             Delivered
                                         </div>
+
                                     </div>
                                 </div>
                             </>

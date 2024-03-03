@@ -172,7 +172,7 @@ router.get('/api/message/:conversationId', (req, res) => __awaiter(void 0, void 
             const messages = yield db_1.Messages.find({ conversationId });
             const messageUserData = Promise.all(messages.map((message) => __awaiter(void 0, void 0, void 0, function* () {
                 const user = yield db_1.Users.findById(message.senderId);
-                return { user: { id: user === null || user === void 0 ? void 0 : user._id, email: user === null || user === void 0 ? void 0 : user.email, fullName: user === null || user === void 0 ? void 0 : user.name }, message: message.message };
+                return { user: { id: user === null || user === void 0 ? void 0 : user._id, email: user === null || user === void 0 ? void 0 : user.email, fullName: user === null || user === void 0 ? void 0 : user.name }, message: message.message, messageId: message._id };
             })));
             res.status(200).json({ conversationId, messageUserData: yield messageUserData });
         });
@@ -194,6 +194,16 @@ router.get('/api/message/:conversationId', (req, res) => __awaiter(void 0, void 
         else {
             checkMessages(conversationId);
         }
+    }
+    catch (error) {
+        console.log(error);
+    }
+}));
+router.delete('/api/message-delete/:messageId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { messageId } = req.params;
+        const message = yield db_1.Messages.findOneAndDelete({ _id: messageId });
+        res.send("Message deleted");
     }
     catch (error) {
         console.log(error);

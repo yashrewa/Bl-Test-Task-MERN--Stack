@@ -183,15 +183,16 @@ router.post('/api/message', async (req: Request, res: Response) => {
 
     }
 })
+
 router.get('/api/message/:conversationId', async (req: Request, res: Response) => {
     try {
         const checkMessages = async (conversationId: any) => {
             const messages = await Messages.find({ conversationId })
             const messageUserData = Promise.all(messages.map(async (message) => {
                 const user = await Users.findById(message.senderId);
-                return { user: { id: user?._id, email: user?.email, fullName: user?.name }, message: message.message }
+                return { user: { id: user?._id, email: user?.email, fullName: user?.name }, message: message.message, messageId: message._id }
             }))
-            res.status(200).json({ conversationId, messageUserData: await messageUserData })
+            res.status(200).json({ conversationId, messageUserData: await messageUserData})
         }
 
         const conversationId = req.params.conversationId
@@ -218,6 +219,19 @@ router.get('/api/message/:conversationId', async (req: Request, res: Response) =
 
     }
 })
+
+
+router.delete('/api/message-delete/:messageId', async (req: Request, res: Response) => {
+    try {
+        const { messageId} = req.params
+        const message = await Messages.findOneAndDelete({_id: messageId})
+        res.send("Message deleted")
+    } catch (error) {
+        console.log(error);
+
+    }
+})
+
 
 
 

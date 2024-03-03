@@ -24,7 +24,7 @@ const io = new Server(httpServer, {
 
 app.use("/user", userRoutes);
 
-const mongoDbUrl =  process.env.MONGODB_URL 
+const mongoDbUrl =  process.env.MONGODB_URL || 'mongodb+srv://yashrewa00:21Savage@cluster0.fngj58u.mongodb.net/TEST-TASK-?retryWrites=true&w=majority'
 
 
 mongoose.connect(`${mongoDbUrl}`);
