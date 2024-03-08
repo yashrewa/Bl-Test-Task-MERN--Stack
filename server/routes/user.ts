@@ -106,6 +106,15 @@ router.get("/me", Authenticate, (req: Request, res: Response) => {
     }
 });
 
+router.get('/api/ping', async (req: Request, res: Response) => {
+    try {   
+        res.status(200).json({message: 'Server Pinging is working successfully'})
+    } catch (error) {
+        console.log(res.status, error);
+        
+    }
+})
+
 router.get("/api/users/:userId", Authenticate, async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;

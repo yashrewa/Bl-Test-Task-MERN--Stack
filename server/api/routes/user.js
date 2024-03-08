@@ -92,6 +92,14 @@ router.get("/me", Auth_1.Authenticate, (req, res) => {
         res.json({ email: req.headers.email });
     }
 });
+router.get('/api/ping', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        res.status(200).json({ message: 'Server Pinging is working successfully' });
+    }
+    catch (error) {
+        console.log(res.status, error);
+    }
+}));
 router.get("/api/users/:userId", Auth_1.Authenticate, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.params.userId;
