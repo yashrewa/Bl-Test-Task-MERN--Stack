@@ -11,6 +11,7 @@ interface CustomSocket extends io.Socket {
 }
 
 interface Message {
+    messageId?: string;
     user: any;
     message: string;
 }
@@ -18,7 +19,7 @@ interface Message {
 interface MessagesState {
     data: Message[];
     conversationId: string | null;
-    receiverId: string | null;
+    receiverId: string | null | undefined;
 }
 interface User {
     email: string;
@@ -54,7 +55,7 @@ interface Users {
 interface CurrentReceiver {
     email: string;
     fullName: string;
-    userId: string;
+    userId: string | null | undefined;
 }
 
 
@@ -303,7 +304,9 @@ function ChatPage() {
                                             <ul tabIndex={0} className="dropdown-content z-[1] menu  mx-0 my-8 shadow bg-gray-900  rounded-box w-52">
                                                 <li className='text-red-500' onClick={() => {
                                                     console.log(message);
-                                                    deleteMessage(message?.messageId, message.user.id)
+                                                    if (message.messageId !== undefined) {
+                                                        deleteMessage(message?.messageId, message.user.id)
+                                                    }
                                                 }}><a>Delete Message</a></li>
                                             </ul>
                                         </div>

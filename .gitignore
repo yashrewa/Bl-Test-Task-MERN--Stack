@@ -1,0 +1,27 @@
+# Ignore Node.js build artifacts
+node_modules/
+
+# Ignore Next.js build artifacts
+/.next/
+
+# Ignore Express.js build artifacts
+/build/
+
+# Ignore environment variables file (if any)
+.env
+
+# Ignore npm debug log
+npm-debug.log*
+
+# Ignore yarn lock file
+yarn.lock
+
+# Ignore Mac's .DS_Store files
+.DS_Store
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore dependencies installed by npm
+package-lock.json
